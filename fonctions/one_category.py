@@ -10,17 +10,16 @@ page_number = 1
 next_page_url = base_url
 
 # Création fichier CSV
-def write_csv(file_name, data, is_header=False):
+# fonction avec 3 parametres
+def write_csv(file_name, data):
     # Création d'un fichier pour écrire dans le fichier book_data.csv
+    # encoding utf8 specifie l'encodage du fichier et newline permet gestion fin de ligne
     with open(file_name, 'a', encoding='utf-8', newline='') as file_csv:
         # Création objet writer (écriture) avec ce fichier
         writer = csv.writer(file_csv, delimiter=',')
         # Si c'est la première entrée, écrire l'en-tête
-        if is_header:
-            writer.writerow(data)
-        else:
-            # Permet de boucler les éléments
-            writer.writerow(data)
+        writer.writerow(data)
+
 
 # Écrire l'en-tête une seule fois avant la boucle
 header = ["product_page_url",
@@ -34,7 +33,7 @@ header = ["product_page_url",
           "review_rating",
           "image_url"]
 
-write_csv('book_data.csv', header, is_header=True)
+write_csv('book_data.csv', header)
 
 # boucle pour parcourir les pages
 while next_page_url:
