@@ -9,15 +9,14 @@ base_url = "http://books.toscrape.com/catalogue/category/books/childrens_11/"
 page_number = 1
 next_page_url = base_url
 
+
 # Création fichier CSV
-# fonction avec 3 parametres
 def write_csv(file_name, data):
     # Création d'un fichier pour écrire dans le fichier book_data.csv
-    # encoding utf8 specifie l'encodage du fichier et newline permet gestion fin de ligne
     with open(file_name, 'a', encoding='utf-8', newline='') as file_csv:
         # Création objet writer (écriture) avec ce fichier
         writer = csv.writer(file_csv, delimiter=',')
-        # Si c'est la première entrée, écrire l'en-tête
+        # Permet de boucler les éléments
         writer.writerow(data)
 
 
@@ -121,5 +120,4 @@ while next_page_url:
 
 # Après chaque boucle affichage du nombre total total de pages traitées
 print(f"Extraction terminée. Nombre total de pages traitées : {page_number}")
-
 print("fichier csv fait")
