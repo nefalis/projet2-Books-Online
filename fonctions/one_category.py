@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import urllib.request
 import csv
+import os
 
 # Récupération de la page catégorie Children. page number permet d'initialisé la page actuelle a 1.
 base_url = "http://books.toscrape.com/catalogue/category/books/childrens_11/"
@@ -19,6 +20,19 @@ def write_csv(file_name, data):
         # Permet de boucler les éléments
         writer.writerow(data)
 
+# pour cibler la partie src
+def recup_img(parse_img):
+    target_link_img = parse_img.find('div', class_="item active").find('img')['src']
+    base_url_img = "http://books.toscrape.com/"
+    # base url + target link permet d'avoir l'adresse de l'image complete et on remplace le '../../' de devant
+    # par rien
+    complete_link_img = base_url_img + target_link_img
+    return complete_link_img.replace("../../", '')
+
+# Supprimer le fichier CSV s'il existe déjà
+csv_file_name = 'book_data.csv'
+if os.path.exists(csv_file_name):
+    os.remove(csv_file_name)
 
 # Écrire l'en-tête une seule fois avant la boucle
 header = ["product_page_url",
@@ -38,7 +52,7 @@ write_csv('book_data.csv', header)
 while next_page_url:
     # obtenir le contenu HTML de la page actuelle et beautiful pour analyser l'HTML
     response = requests.get(next_page_url)
-    soup = BeautifulSoup(response.text, 'lxml')
+    soup = BeautifulSoup(response.content, 'lxml')
 
     # Récupération des liens des livres sur la page actuelle
     book_links = soup.find_all('h3')
@@ -51,11 +65,11 @@ while next_page_url:
         # 2eme requete pour acceder à la page specifique  du livre
         response_book = requests.get(final_url)
         # utilisation de beautiful soup pour analyse de la page du livre
-        soup_book = BeautifulSoup(response_book.text, 'lxml')
+        soup_book = BeautifulSoup(response_book.content, 'lxml')
 
         product_page_url = final_url
         print("livre url", final_url)
-        title = soup_book.find("h3").text
+        title = soup_book.find("h1").text
         print("titre", title)
         review_rating = soup_book.find('p', class_='star-rating').get('class').pop()
         print("etoile", review_rating)
@@ -78,16 +92,6 @@ while next_page_url:
         # On récupère l'image - balise entière avec src et alt
         image = soup_book.find('div', class_="item active").find('img')
 
-        # pour cibler la partie src
-        def recup_img(parse_img):
-            target_link_img = parse_img.find('div', class_="item active").find('img')['src']
-            base_url_img = "http://books.toscrape.com/"
-            # base url + target link permet d'avoir l'adresse de l'image complete et on remplace le '../../' de devant
-            # par rien
-            complete_link_img = base_url_img + target_link_img
-            return complete_link_img.replace("../../", '')
-
-
         # pour enregistrer l'image
         image_url = recup_img(soup_book)
         name_img = "imageSave.jpg"
@@ -101,7 +105,7 @@ while next_page_url:
                 price_including_tax,
                 price_excluding_tax,
                 number_available,
-                product_description,
+                # product_description,
                 category,
                 review_rating,
                 image_url]
@@ -121,3 +125,5 @@ while next_page_url:
 # Après chaque boucle affichage du nombre total total de pages traitées
 print(f"Extraction terminée. Nombre total de pages traitées : {page_number}")
 print("fichier csv fait")
+
+
