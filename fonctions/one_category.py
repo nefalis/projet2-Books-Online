@@ -105,7 +105,7 @@ while next_page_url:
                 price_including_tax,
                 price_excluding_tax,
                 number_available,
-                # product_description,
+                product_description,
                 category,
                 review_rating,
                 image_url]
