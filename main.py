@@ -1,13 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
-import urllib.request
+# import urllib.request
 import csv
 import os
+
 
 # Récupération de la page d'acceuil. page number permet d'initialisé la page actuelle a 1.
 base_url = "https://books.toscrape.com/"
 page_number = 1
-next_page_url = base_url
 
 # Création fichier CSV
 def write_csv(file_name, data):
@@ -56,68 +56,65 @@ for category in categories:
     print(f"Category: {category_name}")
     print("url", category_url)
 
+    # boucle pour parcourir les pages de chaque catégorie
+    while category_url:
+        book_links = soup.find_all(category_url)
 
-# boucle pour parcourir les pages
-while next_page_url:
-    response = requests.get(next_page_url)
-    soup = BeautifulSoup(response.content, 'lxml')
-    # Récupération des liens des livres sur la page actuelle
-    book_links = soup.find_all('h3')
-    for book_link in book_links:
-        # boucle sur les liens pour construire url final
-        relative_url = book_link.find('a')['href']
-        final_url = base_url + relative_url
+        for book_link in book_links:
+            # boucle sur les liens pour construire url final
+            relative_url = book_link.find('a')['href']
+            final_url = base_url + relative_url
 
-        # extraction des donnes sur la page de chaque livre
-        try:
-            response_book = requests.get(final_url)
-            # utilisation de beautiful soup pour analyse de la page du livre
-            soup_book = BeautifulSoup(response_book.content, 'lxml')
+            # extraction des donnes sur la page de chaque livre
+            try:
+                response_book = requests.get(final_url)
+                # utilisation de beautiful soup pour analyse de la page du livre
+                soup_book = BeautifulSoup(response_book.content, 'lxml')
 
-            product_page_url = final_url
-            print("livre url", final_url)
-            title = soup_book.find("h1").text
-            print("titre", title)
-            review_rating = soup_book.find('p', class_='star-rating').get('class').pop()
-            print("etoile", review_rating)
-            product_description = soup_book.find("article", {"class": "product_page"}).find_all("p")[3].text
-            print("description", product_description)
-            category = soup_book.find("ul", {"class": "breadcrumb"}).find_all("a")[2].text
-            print("categorie", category)
-            # On recherche tout les elements td de la page
-            list_table = soup_book.find_all('td')
-            # On recherche de l'element précis contenu uniquement dans les td
-            universal_product_code = list_table[0].text
-            print("upc", universal_product_code)
-            price_including_tax = list_table[2].text
-            print("prix avec taxe", price_including_tax)
-            price_excluding_tax = list_table[3].text
-            print("prix sans tax", price_excluding_tax)
-            number_available = list_table[5].text
-            print("dispo", number_available)
+                product_page_url = final_url
+                print("livre url", final_url)
+                title = soup_book.find("h1").text
+                print("titre", title)
+                review_rating = soup_book.find('p', class_='star-rating').get('class').pop()
+                print("etoile", review_rating)
+                product_description = soup_book.find("article", {"class": "product_page"}).find_all("p")[3].text
+                print("description", product_description)
+                category = soup_book.find("ul", {"class": "breadcrumb"}).find_all("a")[2].text
+                print("categorie", category)
+                # On recherche tout les elements td de la page
+                list_table = soup_book.find_all('td')
+                # On recherche de l'element précis contenu uniquement dans les td
+                universal_product_code = list_table[0].text
+                print("upc", universal_product_code)
+                price_including_tax = list_table[2].text
+                print("prix avec taxe", price_including_tax)
+                price_excluding_tax = list_table[3].text
+                print("prix sans tax", price_excluding_tax)
+                number_available = list_table[5].text
+                print("dispo", number_available)
 
-            # Ajouter les données du livre à la liste
-            data = [product_page_url,
-                    universal_product_code,
-                    title,
-                    price_including_tax,
-                    price_excluding_tax,
-                    number_available,
-                    product_description,
-                    category,
-                    review_rating]
+                # Ajouter les données du livre à la liste
+                data = [product_page_url,
+                        universal_product_code,
+                        title,
+                        price_including_tax,
+                        price_excluding_tax,
+                        number_available,
+                        product_description,
+                        category,
+                        review_rating]
 
-            # Appeler la fonction pour écrire dans le fichier CSV
-            write_csv('book_data.csv', data)
+                # Appeler la fonction pour écrire dans le fichier CSV
+                write_csv('book_data.csv', data)
 
-        except Exception as e:
-            print(f"Erreur lors de l'extraction des données pour {final_url}: {e}")
+            except Exception as e:
+                print(f"Erreur lors de l'extraction des données pour {final_url}: {e}")
 
     # Chercher le lien vers la page suivante
     # Mise à jour de next_page_url si une page suivante existe, sinon, le définir sur None pour arrêter la boucle.
     next_page = soup.find('li', class_='next')
     if next_page:
-        next_page_url = base_url + next_page.a['href']
+        category_url = base_url + next_page.a['href']
         page_number += 1
     else:
-        next_page_url = None
+        category_url = None
